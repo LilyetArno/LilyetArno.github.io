@@ -2,11 +2,118 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>test</title>
+  <title>Timer Synchro</title>
+  <style>
+    body {
+      background: black;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 5em;
+      text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+      animation: glitch 1s infinite;
+    }
+
+    @keyframes glitch {
+      0% { text-shadow: 2px 0 red, -2px 0 blue; }
+      20% { text-shadow: -2px 0 red, 2px 0 blue; }
+      40% { text-shadow: 2px 2px red, -2px -2px blue; }
+      60% { text-shadow: -2px -2px red, 2px 2px blue; }
+      80% { text-shadow: 2px -2px red, -2px 2px blue; }
+      100% { text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
+    }
+
+    #adminPanel {
+      margin-top: 20px;
+      padding: 10px;
+      border: 1px solid #00ff00;
+      display: none; /* 👈 mettre "block" pour voir l’admin */
+    }
+
+    label, input, button {
+      color: #00ff00;
+      background: black;
+      border: 1px solid #00ff00;
+      padding: 5px;
+      margin: 5px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Bonjour à tous 👋</h1>
-  <p>Bienvenue dans les énigmes du nouveau Monde !</p>
+  <h1 id="timer">30</h1>
+
+  <div id="adminPanel">
+    <label>Durée (sec):</label>
+    <input type="number" id="duration" value="30">
+    <br>
+    <label>URL fin:</label>
+    <input type="text" id="redirectUrl" value="https://www.youtube.com/">
+    <br>
+    <button onclick="startTimer()">Démarrer</button>
+    <button onclick="resetTimer()">Reset</button>
+  </div>
+
+  <script>
+    // ⚙️ PARAMÈTRES MODIFIABLES
+    let adminVisible = true;  // 👈 mettre "false" pour cacher l'admin
+    let sharedStartTime = localStorage.getItem("sharedStartTime");
+    let duration = 30;
+    let redirectUrl = "https://www.youtube.com/";
+    let interval;
+
+    // Affiche admin si activé
+    if (adminVisible) {
+      document.getElementById("adminPanel").style.display = "block";
+    }
+
+    function startTimer() {
+      duration = parseInt(document.getElementById("duration").value);
+      redirectUrl = document.getElementById("redirectUrl").value;
+      sharedStartTime = Date.now();
+      localStorage.setItem("sharedStartTime", sharedStartTime);
+      localStorage.setItem("duration", duration);
+      localStorage.setItem("redirectUrl", redirectUrl);
+      updateTimer();
+      interval = setInterval(updateTimer, 500);
+    }
+
+    function resetTimer() {
+      clearInterval(interval);
+      document.getElementById("timer").innerText = duration;
+      localStorage.removeItem("sharedStartTime");
+    }
+
+    function updateTimer() {
+      if (!sharedStartTime) return;
+      let elapsed = Math.floor((Date.now() - sharedStartTime) / 1000);
+      let remaining = duration - elapsed;
+      if (remaining <= 0) {
+        clearInterval(interval);
+        document.getElementById("timer").innerText = "0";
+        window.location.href = redirectUrl; // Redirection
+      } else {
+        document.getElementById("timer").innerText = remaining;
+      }
+    }
+
+    // Quand la page charge → reprend le timer en cours
+    window.onload = () => {
+      duration = localStorage.getItem("duration") || duration;
+      redirectUrl = localStorage.getItem("redirectUrl") || redirectUrl;
+      sharedStartTime = localStorage.getItem("sharedStartTime");
+      if (sharedStartTime) {
+        updateTimer();
+        interval = setInterval(updateTimer, 500);
+      }
+    };
+  </script>
 </body>
 </html>
-
