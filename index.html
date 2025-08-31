@@ -14,31 +14,50 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
+      position: relative;
     }
 
     #timer {
-      font-size: 5em;
-      text-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00;
+      font-size: 10em; /* ⬆️ Taille doublée */
+      text-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00;
       animation: glitch 1s infinite;
     }
 
     @keyframes glitch {
-      0% { text-shadow: 2px 0 red, -2px 0 blue; }
-      20% { text-shadow: -2px 0 red, 2px 0 blue; }
-      40% { text-shadow: 2px 2px red, -2px -2px blue; }
-      60% { text-shadow: -2px -2px red, 2px 2px blue; }
-      80% { text-shadow: 2px -2px red, -2px 2px blue; }
-      100% { text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; }
+      0% { text-shadow: 3px 0 red, -3px 0 blue; }
+      20% { text-shadow: -3px 0 red, 3px 0 blue; }
+      40% { text-shadow: 3px 3px red, -3px -3px blue; }
+      60% { text-shadow: -3px -3px red, 3px 3px blue; }
+      80% { text-shadow: 3px -3px red, -3px 3px blue; }
+      100% { text-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00; }
+    }
+
+    /* Case mot de passe en haut à droite */
+    #passwordBox {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: black;
+      border: 1px solid #00ff00;
+      padding: 5px;
+    }
+
+    #passwordBox input {
+      background: black;
+      border: 1px solid #00ff00;
+      color: #00ff00;
+      padding: 5px;
     }
 
     #adminPanel {
       margin-top: 20px;
-      padding: 10px;
+      padding: 15px;
       border: 1px solid #00ff00;
-      display: none; /* 👈 change à "block" pour voir l’admin */
+      display: none;
+      background: rgba(0, 0, 0, 0.8);
     }
 
-    label, input, button {
+    label, input, button, select {
       color: #00ff00;
       background: black;
       border: 1px solid #00ff00;
@@ -52,48 +71,77 @@
     }
 
     iframe {
-      width: 70vw;
-      height: 40vw;
-      max-width: 800px;
-      max-height: 450px;
+      width: 85vw;   /* ⬆️ Plus grand */
+      height: 48vw;
+      max-width: 1200px;
+      max-height: 675px;
       border: none;
-      box-shadow: 0 0 20px #00ff00;
+      box-shadow: 0 0 25px #00ff00;
     }
   </style>
 </head>
 <body>
-  <h1 id="timer">10</h1>
+  <h1 id="timer">30</h1>
 
+  <!-- Case mot de passe -->
+  <div id="passwordBox">
+    <input type="password" id="adminPassword" placeholder="Mot de passe" onkeydown="if(event.key==='Enter'){checkPassword()}">
+  </div>
+
+  <!-- Admin caché -->
   <div id="adminPanel">
     <label>Durée (sec):</label>
-    <input type="number" id="duration" value="30">
-    <br>
+    <input type="number" id="duration" value="30"><br>
+
     <label>URL YouTube:</label>
-    <input type="text" id="videoUrl" value="https://youtu.be/1HH1fLL1OyY">
-    <br>
+    <input type="text" id="videoUrl" value="https://www.youtube.com/watch?v=dQw4w9WgXcQ"><br>
+
+    <label>Son décompte:</label>
+    <select id="soundChoice">
+      <option value="none">Aucun</option>
+      <option value="beep">Bip court</option>
+      <option value="alarm">Alarme fin</option>
+    </select><br>
+
     <button onclick="startTimer()">Démarrer</button>
     <button onclick="resetTimer()">Reset</button>
   </div>
 
   <div id="videoContainer"></div>
 
+  <!-- Sons -->
+  <audio id="beepSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+  <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
+
   <script>
-    // ⚙️ PARAMÈTRES
-    let adminVisible = true; // 👈 mettre "false" pour cacher l'admin
-    if (adminVisible) document.getElementById("adminPanel").style.display = "block";
+    // ⚙️ Mot de passe admin (à modifier ici)
+    const ADMIN_PASSWORD = "1234";
 
     let duration = 30;
     let videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
     let interval;
+    let soundChoice = "none";
+
+    function checkPassword() {
+      const input = document.getElementById("adminPassword").value;
+      if (input === ADMIN_PASSWORD) {
+        document.getElementById("adminPanel").style.display = "block";
+        document.getElementById("passwordBox").style.display = "none";
+      } else {
+        alert("Mot de passe incorrect !");
+      }
+    }
 
     function startTimer() {
       duration = parseInt(document.getElementById("duration").value);
       videoUrl = document.getElementById("videoUrl").value;
+      soundChoice = document.getElementById("soundChoice").value;
+
       clearInterval(interval);
       document.getElementById("timer").innerText = duration;
       document.getElementById("timer").style.display = "block";
       document.getElementById("videoContainer").style.display = "none";
-      interval = setInterval(updateTimer, 500);
+      interval = setInterval(updateTimer, 1000);
     }
 
     function resetTimer() {
@@ -107,15 +155,22 @@
     function updateTimer() {
       let current = parseInt(document.getElementById("timer").innerText);
       current--;
+
+      if (soundChoice === "beep" && current > 0) {
+        document.getElementById("beepSound").play();
+      }
+
       if (current <= 0) {
         clearInterval(interval);
+        if (soundChoice === "alarm") {
+          document.getElementById("alarmSound").play();
+        }
         showVideo(videoUrl);
       } else {
         document.getElementById("timer").innerText = current;
       }
     }
 
-    // Convertit URL YouTube en embed
     function getEmbedUrl(url) {
       let videoId = "";
       if (url.includes("watch?v=")) {
@@ -126,7 +181,6 @@
       return "https://www.youtube.com/embed/" + videoId + "?autoplay=1";
     }
 
-    // Affiche vidéo et cache timer
     function showVideo(url) {
       let embedUrl = getEmbedUrl(url);
       document.getElementById("timer").style.display = "none";
