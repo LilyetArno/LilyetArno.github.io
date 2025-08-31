@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Timer Synchro</title>
+  <title>Timer Local</title>
   <style>
     body {
       background: black;
@@ -16,9 +16,9 @@
       margin: 0;
     }
 
-    h1 {
-      font-size: 20em;
-      text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+    #timer {
+      font-size: 5em;
+      text-shadow: 0 0 20px #00ff00, 0 0 30px #00ff00;
       animation: glitch 1s infinite;
     }
 
@@ -35,7 +35,7 @@
       margin-top: 20px;
       padding: 10px;
       border: 1px solid #00ff00;
-      display: none; /* 👈 mettre "block" pour voir l’admin */
+      display: none; /* 👈 change à "block" pour voir l’admin */
     }
 
     label, input, button {
@@ -45,77 +45,95 @@
       padding: 5px;
       margin: 5px;
     }
+
+    #videoContainer {
+      display: none;
+      margin-top: 20px;
+    }
+
+    iframe {
+      width: 70vw;
+      height: 40vw;
+      max-width: 800px;
+      max-height: 450px;
+      border: none;
+      box-shadow: 0 0 20px #00ff00;
+    }
   </style>
 </head>
 <body>
-  <h1 id="timer">30</h1>
+  <h1 id="timer">10</h1>
 
   <div id="adminPanel">
     <label>Durée (sec):</label>
     <input type="number" id="duration" value="30">
     <br>
-    <label>URL fin:</label>
-    <input type="text" id="redirectUrl" value="https://www.youtube.com/">
+    <label>URL YouTube:</label>
+    <input type="text" id="videoUrl" value="https://youtu.be/1HH1fLL1OyY">
     <br>
     <button onclick="startTimer()">Démarrer</button>
     <button onclick="resetTimer()">Reset</button>
   </div>
 
-  <script>
-    // ⚙️ PARAMÈTRES MODIFIABLES
-    let adminVisible = false;  // 👈 mettre "false" pour cacher l'admin
-    let sharedStartTime = localStorage.getItem("sharedStartTime");
-    let duration = 30;
-    let redirectUrl = "https://youtu.be/1HH1fLL1OyY/";
-    let interval;
+  <div id="videoContainer"></div>
 
-    // Affiche admin si activé
-    if (adminVisible) {
-      document.getElementById("adminPanel").style.display = "block";
-    }
+  <script>
+    // ⚙️ PARAMÈTRES
+    let adminVisible = true; // 👈 mettre "false" pour cacher l'admin
+    if (adminVisible) document.getElementById("adminPanel").style.display = "block";
+
+    let duration = 30;
+    let videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    let interval;
 
     function startTimer() {
       duration = parseInt(document.getElementById("duration").value);
-      redirectUrl = document.getElementById("redirectUrl").value;
-      sharedStartTime = Date.now();
-      localStorage.setItem("sharedStartTime", sharedStartTime);
-      localStorage.setItem("duration", duration);
-      localStorage.setItem("redirectUrl", redirectUrl);
-      updateTimer();
+      videoUrl = document.getElementById("videoUrl").value;
+      clearInterval(interval);
+      document.getElementById("timer").innerText = duration;
+      document.getElementById("timer").style.display = "block";
+      document.getElementById("videoContainer").style.display = "none";
       interval = setInterval(updateTimer, 500);
     }
 
     function resetTimer() {
       clearInterval(interval);
       document.getElementById("timer").innerText = duration;
-      localStorage.removeItem("sharedStartTime");
+      document.getElementById("timer").style.display = "block";
+      document.getElementById("videoContainer").innerHTML = "";
+      document.getElementById("videoContainer").style.display = "none";
     }
 
     function updateTimer() {
-      if (!sharedStartTime) return;
-      let elapsed = Math.floor((Date.now() - sharedStartTime) / 1000);
-      let remaining = duration - elapsed;
-      if (remaining <= 0) {
+      let current = parseInt(document.getElementById("timer").innerText);
+      current--;
+      if (current <= 0) {
         clearInterval(interval);
-        document.getElementById("timer").innerText = "0";
-        window.location.href = redirectUrl; // Redirection
+        showVideo(videoUrl);
       } else {
-        document.getElementById("timer").innerText = remaining;
+        document.getElementById("timer").innerText = current;
       }
     }
 
-    // Quand la page charge → reprend le timer en cours
-    window.onload = () => {
-      duration = localStorage.getItem("duration") || duration;
-      redirectUrl = localStorage.getItem("redirectUrl") || redirectUrl;
-      sharedStartTime = localStorage.getItem("sharedStartTime");
-      if (sharedStartTime) {
-        updateTimer();
-        interval = setInterval(updateTimer, 500);
+    // Convertit URL YouTube en embed
+    function getEmbedUrl(url) {
+      let videoId = "";
+      if (url.includes("watch?v=")) {
+        videoId = url.split("watch?v=")[1].split("&")[0];
+      } else if (url.includes("youtu.be/")) {
+        videoId = url.split("youtu.be/")[1].split("?")[0];
       }
-    };
+      return "https://www.youtube.com/embed/" + videoId + "?autoplay=1";
+    }
+
+    // Affiche vidéo et cache timer
+    function showVideo(url) {
+      let embedUrl = getEmbedUrl(url);
+      document.getElementById("timer").style.display = "none";
+      document.getElementById("videoContainer").innerHTML =
+        `<iframe src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+      document.getElementById("videoContainer").style.display = "block";
+    }
   </script>
 </body>
 </html>
-
-
