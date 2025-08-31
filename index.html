@@ -140,18 +140,20 @@
     const ADMIN_PASSWORD = "1234";
     let interval;
 
-    // 🔥 CONFIGURE FIREBASE
-    const firebaseConfig = {
-      apiKey: "TON_API_KEY",
-      authDomain: "ton-projet.firebaseapp.com",
-      databaseURL: "https://ton-projet-default-rtdb.firebaseio.com",
-      projectId: "ton-projet",
-      storageBucket: "ton-projet.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "1:123456789:web:abcdef"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+   // 🔥 CONFIGURE FIREBASE
+const firebaseConfig = {
+  apiKey: "DXjUUryS2QsquFMSS3XMCaQ0lnDiCl0hCTkBxKjG",
+  authDomain: "timer-d5cac.firebaseapp.com",
+  databaseURL: "https://timer-d5cac-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "timer-d5cac",
+  storageBucket: "timer-d5cac.appspot.com",
+  messagingSenderId: "123456789", // tu peux laisser ce champ par défaut si tu n’as pas besoin de notifications
+  appId: "1:123456789:web:abcdef" // tu peux remplacer par l’appId de ton projet si disponible
+};
+
+// Initialisation Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
     let duration = 30;
     let videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
@@ -260,3 +262,4 @@
   </script>
 </body>
 </html>
+
