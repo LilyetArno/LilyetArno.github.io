@@ -32,7 +32,6 @@
       100% { text-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00; }
     }
 
-    /* Case mot de passe en haut à droite */
     #passwordBox {
       position: absolute;
       top: 10px;
@@ -90,7 +89,6 @@
       box-shadow: 0 0 30px #00ff00;
     }
 
-    /* Compteur visiteurs */
     #visitorCounter {
       position: absolute;
       bottom: 10px;
@@ -104,12 +102,10 @@
 <body>
   <h1 id="timer">30</h1>
 
-  <!-- Case mot de passe -->
   <div id="passwordBox">
     <input type="password" id="adminPassword" placeholder="Mot de passe" onkeydown="if(event.key==='Enter'){checkPassword()}">
   </div>
 
-  <!-- Admin caché -->
   <div id="adminPanel">
     <span id="closeAdmin" onclick="closeAdmin()">✖</span>
     <label>Durée (sec):</label>
@@ -131,11 +127,9 @@
 
   <div id="videoContainer"></div>
 
-  <!-- Sons -->
   <audio id="beepSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
   <audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"></audio>
 
-  <!-- Compteur visiteurs -->
   <div id="visitorCounter">Visiteurs : 0</div>
 
   <!-- Firebase SDK -->
@@ -143,7 +137,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
-    // ⚙️ CONFIG
     const ADMIN_PASSWORD = "1234";
     let interval;
 
@@ -160,12 +153,11 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Paramètres par défaut
     let duration = 30;
     let videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
     let soundChoice = "beep";
 
-    // 🔑 ADMIN
+    // ADMIN
     function checkPassword() {
       const input = document.getElementById("adminPassword").value;
       if(input === ADMIN_PASSWORD){
@@ -184,6 +176,9 @@
       let url = document.getElementById("videoUrl").value;
       let sound = document.getElementById("soundChoice").value;
       db.ref("settings").set({duration: dur, videoUrl: url, soundChoice: sound});
+      db.ref("timer/startTime").once("value").then(snap=>{
+        if(!snap.val()) db.ref("timer/startTime").set(Date.now());
+      });
     }
 
     function loadSettings(){
@@ -197,7 +192,7 @@
       });
     }
 
-    // 🔢 COMPTEUR VISITEURS
+    // VISITEURS
     function updateVisitorCount(){
       const visitorRef = db.ref("visitCount");
       visitorRef.transaction(current => (current||0)+1);
@@ -206,12 +201,11 @@
       });
     }
 
-    // 🔥 TIMER GLOBAL
+    // TIMER GLOBAL
     function startTimer() {
       db.ref("timer").once("value").then(snap=>{
         let data = snap.val();
         if(!data){
-          // init timer
           const startTime = Date.now();
           db.ref("timer").set({startTime: startTime, duration: duration, videoUrl: videoUrl, soundChoice: soundChoice});
           data = {startTime: startTime, duration: duration, videoUrl: videoUrl, soundChoice: soundChoice};
@@ -259,7 +253,6 @@
       document.getElementById("videoContainer").style.display="block";
     }
 
-    // 🚀 INIT
     window.onload = ()=>{
       updateVisitorCount();
       startTimer();
