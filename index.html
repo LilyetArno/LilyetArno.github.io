@@ -18,7 +18,7 @@
     }
 
     #timer {
-      font-size: 10em; /* ⬆️ Taille doublée */
+      font-size: 10em; /* Taille doublée */
       text-shadow: 0 0 15px #00ff00, 0 0 30px #00ff00;
       animation: glitch 1s infinite;
     }
@@ -54,7 +54,18 @@
       padding: 15px;
       border: 1px solid #00ff00;
       display: none;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.9);
+      position: relative;
+    }
+
+    #closeAdmin {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      cursor: pointer;
+      color: red;
+      font-size: 1.2em;
+      font-weight: bold;
     }
 
     label, input, button, select {
@@ -71,7 +82,7 @@
     }
 
     iframe {
-      width: 85vw;   /* ⬆️ Plus grand */
+      width: 85vw;   /* Plus grand */
       height: 48vw;
       max-width: 1200px;
       max-height: 675px;
@@ -90,6 +101,7 @@
 
   <!-- Admin caché -->
   <div id="adminPanel">
+    <span id="closeAdmin" onclick="closeAdmin()">✖</span>
     <label>Durée (sec):</label>
     <input type="number" id="duration" value="30"><br>
 
@@ -130,6 +142,11 @@
       } else {
         alert("Mot de passe incorrect !");
       }
+    }
+
+    function closeAdmin() {
+      document.getElementById("adminPanel").style.display = "none";
+      document.getElementById("passwordBox").style.display = "block";
     }
 
     function startTimer() {
@@ -188,6 +205,11 @@
         `<iframe src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
       document.getElementById("videoContainer").style.display = "block";
     }
+
+    // 🚀 Démarre automatiquement le timer à l'ouverture de la page
+    window.onload = () => {
+      startTimer();
+    };
   </script>
 </body>
 </html>
