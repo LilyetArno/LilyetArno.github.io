@@ -100,7 +100,7 @@
   </style>
 </head>
 <body>
-  <h1 id="timer">30</h1>
+  <h1 id="timer">48:00:00</h1>
 
   <div id="passwordBox">
     <input type="password" id="adminPassword" placeholder="Mot de passe" onkeydown="if(event.key==='Enter'){checkPassword()}">
@@ -123,6 +123,7 @@
 
     <button onclick="saveSettings()">Save</button>
     <button onclick="resetTimer()">Reset</button>
+    <button onclick="startUniversalTimer()">Start</button>
   </div>
 
   <div id="videoContainer"></div>
@@ -140,22 +141,20 @@
     const ADMIN_PASSWORD = "1234";
     let interval;
 
-   // 🔥 CONFIGURE FIREBASE
-const firebaseConfig = {
-  apiKey: "DXjUUryS2QsquFMSS3XMCaQ0lnDiCl0hCTkBxKjG",
-  authDomain: "timer-d5cac.firebaseapp.com",
-  databaseURL: "https://timer-d5cac-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "timer-d5cac",
-  storageBucket: "timer-d5cac.appspot.com",
-  messagingSenderId: "123456789", // tu peux laisser ce champ par défaut si tu n’as pas besoin de notifications
-  appId: "1:123456789:web:abcdef" // tu peux remplacer par l’appId de ton projet si disponible
-};
+    // 🔥 CONFIGURE FIREBASE
+    const firebaseConfig = {
+      apiKey: "DXjUUryS2QsquFMSS3XMCaQ0lnDiCl0hCTkBxKjG",
+      authDomain: "timer-d5cac.firebaseapp.com",
+      databaseURL: "https://timer-d5cac-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "timer-d5cac",
+      storageBucket: "timer-d5cac.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:abcdef"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-// Initialisation Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-    let duration = 30;
+    let duration = 172800; // 48h par défaut
     let videoUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
     let soundChoice = "beep";
 
@@ -178,9 +177,6 @@ const db = firebase.database();
       let url = document.getElementById("videoUrl").value;
       let sound = document.getElementById("soundChoice").value;
       db.ref("settings").set({duration: dur, videoUrl: url, soundChoice: sound});
-      db.ref("timer/startTime").once("value").then(snap=>{
-        if(!snap.val()) db.ref("timer/startTime").set(Date.now());
-      });
     }
 
     function loadSettings(){
@@ -194,6 +190,19 @@ const db = firebase.database();
       });
     }
 
+    function startUniversalTimer(){
+      db.ref("settings").once("value").then(snap=>{
+        const data = snap.val();
+        if(data){
+          duration = data.duration;
+          videoUrl = data.videoUrl;
+          soundChoice = data.soundChoice;
+        }
+        const startTime = Date.now();
+        db.ref("timer").set({startTime: startTime, duration: duration, videoUrl: videoUrl, soundChoice: soundChoice});
+      });
+    }
+
     // VISITEURS
     function updateVisitorCount(){
       const visitorRef = db.ref("visitCount");
@@ -204,18 +213,6 @@ const db = firebase.database();
     }
 
     // TIMER GLOBAL
-    function startTimer() {
-      db.ref("timer").once("value").then(snap=>{
-        let data = snap.val();
-        if(!data){
-          const startTime = Date.now();
-          db.ref("timer").set({startTime: startTime, duration: duration, videoUrl: videoUrl, soundChoice: soundChoice});
-          data = {startTime: startTime, duration: duration, videoUrl: videoUrl, soundChoice: soundChoice};
-        }
-        runTimer(data);
-      });
-    }
-
     db.ref("timer").on("value", snap=>{
       const data = snap.val();
       if(data) runTimer(data);
@@ -233,12 +230,19 @@ const db = firebase.database();
         if(remaining <=0){
           clearInterval(interval);
           showVideo(videoUrl);
-          document.getElementById("timer").innerText = "0";
+          document.getElementById("timer").innerText = "00:00:00";
         } else {
-          document.getElementById("timer").innerText = remaining;
+          document.getElementById("timer").innerText = formatTime(remaining);
           if(soundChoice==="beep") document.getElementById("beepSound").play();
         }
       }, 1000);
+    }
+
+    function formatTime(seconds){
+      let h = Math.floor(seconds / 3600);
+      let m = Math.floor((seconds % 3600) / 60);
+      let s = seconds % 60;
+      return String(h).padStart(2,'0')+":"+String(m).padStart(2,'0')+":"+String(s).padStart(2,'0');
     }
 
     function getEmbedUrl(url){
@@ -257,9 +261,7 @@ const db = firebase.database();
 
     window.onload = ()=>{
       updateVisitorCount();
-      startTimer();
     };
   </script>
 </body>
 </html>
-
